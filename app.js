@@ -3,7 +3,6 @@ const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const helmet = require("helmet");
 const morgan = require("morgan");
 require("dotenv").config();
 
@@ -24,7 +23,6 @@ const accessLogStream = fs.createWriteStream(
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
-app.use(helmet());
 app.use(morgan("combined", { stream: accessLogStream }));
 
 const expenseRoutes = require("./routes/expenseRoutes");
@@ -36,7 +34,6 @@ const forgotpwdRoutes = require("./routes/forgot");
 const downloadRoutes = require("./routes/downloadRoutes");
 const monthdataRoutes = require("./routes/monthDataRoutes");
 const deleteRoutes = require("./routes/delete");
-
 
 User.hasMany(Expense);
 Expense.belongsTo(User);
@@ -59,13 +56,16 @@ app.use(expenseRoutes);
 app.use(IncomeRoutes);
 app.use("/premium", premiumFeaturesRoutes);
 app.use("/delete", deleteRoutes);
+app.use((req, res) => {
+  console.log(req.url);
+  res.sendFile(path.join(__dirname, `public/${req.url}`));
+});
 
 const port = process.env.PORT;
 
 sequelize
   .sync()
   .then((result) => {
-    // console.log(result);
     app.listen(port, () => console.log("server is running on port 3000"));
   })
   .catch((err) => {
