@@ -5,28 +5,19 @@ const Income = require("../model/income");
 const deleteExpenses = async (req, res, next) => {
   try {
     const got = await User.findOne({
-      where: {
-        id: req.user.id,
-      },
+      _id: req.user.id,
     });
-    const deletedExp = await Expenses.findOne({
-      where: {
-        id: req.params.id,
-      },
+    const deletedExp = await Expenses.findOneAndDelete({
+      _id: req.params.id,
     });
-    await Expenses.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
-    const totalExpense = Number(got.totalExpense) + Number(deletedExp.amount);
-    await User.update(
+    const totalExpense = Number(got.totalExpense) - Number(deletedExp.amount);
+    await User.updateOne(
       {
-        totalExpense: totalExpense,
+        _id: req.user.id,
       },
       {
-        where: {
-          id: req.user.id,
+        $set: {
+          totalExpense: totalExpense,
         },
       }
     );
@@ -38,10 +29,8 @@ const deleteExpenses = async (req, res, next) => {
 
 const deleteIncomes = async (req, res, next) => {
   try {
-    await Income.destroy({
-      where: {
-        id: req.params.id,
-      },
+    await Income.deleteOne({
+      _id: req.params.id,
     });
     res.status(201).json("records deleted");
   } catch (err) {

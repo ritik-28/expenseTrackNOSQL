@@ -1,13 +1,10 @@
-const Expenses = require("../model/expense");
-const User = require("../model/user");
-const sequelize = require("../model/database");
 const userServices = require("../services/userServices");
 
 const S3Service = require("../services/S3Services");
 
 const downloadExpense = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const expenses = await userServices.getExpenses(req);
     const stringinfyExpenses = JSON.stringify(expenses);

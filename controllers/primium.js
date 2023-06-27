@@ -20,7 +20,8 @@ const purchasePrimium = async (req, res, next) => {
       await Order.create({
         orderid: order.id,
         status: "PENDING",
-        userId: req.user.id,
+        paymentid: null,
+        userId: req.user._id,
       });
       return res.status(201).json({
         order,
@@ -33,42 +34,50 @@ const purchasePrimium = async (req, res, next) => {
 };
 
 const updatetransactionstatus = async (req, res, next) => {
-  const { order_id, payment_id } = req.body;
-  const id = req.user.dataValues.id;
-  if (payment_id) {
-    Promise.all(
-      await Order.update(
+  try {
+    const { order_id, payment_id } = req.body;
+    const id = req.user._id;
+    if (payment_id) {
+      await Order.updateOne(
+        { orderid: order_id },
         {
-          paymentid: payment_id,
-          status: "SUCCESFULL",
-        },
-        {
-          where: { orderid: order_id },
+          $set: {
+            paymentid: payment_id,
+            status: "SUCCESFULL",
+          },
         }
-      ),
-      await User.update(
+      );
+      await User.updateOne(
+        { _id: id },
         {
-          isPrimium: true,
-        },
-        {
-          where: { id },
+          $set: {
+            isPrimium: true,
+          },
         }
-      ),
-      res.status(202).json({ success: true, message: "Transaction Successful" })
-    );
+      );
+      res
+        .status(202)
+        .json({ success: true, message: "Transaction Successful" });
+    }
+  } catch (err) {
+    res.json({ err: err });
   }
 };
 
 const paymentfailed = async (req, res, next) => {
-  await Order.update(
-    {
-      status: "FAILED",
-    },
-    {
-      where: { orderid: req.body.order_id },
-    }
-  ),
-    res.status(201).json({ success: false, message: "Transaction Failed" });
+  try {
+    await Order.updateOne(
+      { orderid: req.body.order_id },
+      {
+        $set: {
+          status: "FAILED",
+        },
+      }
+    ),
+      res.status(201).json({ success: false, message: "Transaction Failed" });
+  } catch (err) {
+    res.json({ err: err });
+  }
 };
 
 module.exports = {

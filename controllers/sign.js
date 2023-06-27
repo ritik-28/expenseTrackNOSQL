@@ -11,9 +11,7 @@ const signupPost = async (req, res, next) => {
       return res.status(400).json({ err: "fill all feilds" });
     } else {
       const emailpresent = await User.findOne({
-        where: {
-          email,
-        },
+        email,
       });
       if (emailpresent != null) {
         throw new Error("this email is already present");
@@ -36,7 +34,7 @@ const signupPost = async (req, res, next) => {
 };
 
 function generateToken(id) {
-  return jwt.sign({ userId: id, name: "ritik" }, process.env.TOKEN_SECRET);
+  return jwt.sign({ userId: id }, process.env.TOKEN_SECRET);
 }
 
 const signinPost = async (req, res, next) => {
@@ -48,17 +46,14 @@ const signinPost = async (req, res, next) => {
     }
 
     const emailExists = await User.findOne({
-      where: {
-        email,
-      },
+      email,
     });
-
     if (emailExists != null) {
       bcrypt.compare(password, emailExists.password, (err, result) => {
         if (err) {
           return res.status(500).json("something went wrong");
         } else if (result === true) {
-          return res.json(generateToken(emailExists.dataValues.id));
+          return res.json(generateToken(emailExists.id));
         } else {
           return res.status(401).json("User not authorized");
         }

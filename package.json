@@ -1,13 +1,12 @@
 {
   "name": "expensefull",
   "version": "1.0.0",
-  "description": "",
+  "description": "expense tracker app using nosql database",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js",
-    "start-server": "node app.js",
-    "start:dev": "nodemon app.js"
+    "start-server": "node app.js"
   },
   "repository": {
     "type": "git"
@@ -15,22 +14,22 @@
   "author": "ritik tiwari",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^2.0.21"
+    "nodemon": "^1.14.9"
   },
   "dependencies": {
     "aws-sdk": "^2.1362.0",
     "axios": "^1.3.4",
-    "bcrypt": "^5.1.0",
+    "bcrypt": "^5.0.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "helmet": "^6.1.5",
     "jsonwebtoken": "^9.0.0",
+    "mongodb": "^5.6.0",
+    "mongoose": "^7.3.1",
     "morgan": "^1.10.0",
-    "mysql2": "^3.2.0",
+    "node": "^20.3.1",
     "razorpay": "^2.8.6",
-    "sequelize": "^6.30.0",
     "sib-api-v3-sdk": "^8.5.0",
     "uuid": "^9.0.0"
   }

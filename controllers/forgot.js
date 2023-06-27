@@ -8,13 +8,13 @@ require("dotenv").config();
 const forgotPwd = async (req, res, next) => {
   try {
     const email = req.body.email;
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email });
     if (user) {
       const id = uuid.v4();
       await forgotpassword.create({
         id,
         isactive: true,
-        userId: user.id,
+        userId: user._id,
       });
       const client = Sib.ApiClient.instance;
       const apiKey = client.authentications["api-key"];
@@ -33,7 +33,7 @@ const forgotPwd = async (req, res, next) => {
         sender,
         to: recievers,
         subject: `subscribe to expense app for more features`,
-        htmlContent: `<h4>visit this link</h4><a href= "http://54.210.206.255:3000/password/resetpassword/${id}">Reset Password</a>`,
+        htmlContent: `<h4>visit this link</h4><a href= "http://localhost:3000/password/resetpassword/${id}">Reset Password</a>`,
       });
       return res.status(202).json("email sent successfully");
     } else {
@@ -41,23 +41,32 @@ const forgotPwd = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
-    return res.json({ message: err, sucess: false });
+    return res.json({ message: err, success: false });
   }
 };
 
 const resetPwd = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const gotit = await forgotpassword.findOne({ where: { id } });
-    if (gotit) {
-      gotit.update({ isactive: false });
+    const gotit = await forgotpassword.findOne({ id: id });
+    if (gotit.isactive === true) {
+      await forgotpassword.updateOne(
+        { id: gotit.id },
+        {
+          $set: {
+            isactive: false,
+          },
+        }
+      );
       res.status(200).send(`<html>
-                                <form action="http://54.210.206.255:3000/password/updatepassword/${id}" method="get">
+                                <form action="http://localhost:3000/password/updatepassword/${id}" method="get">
                                         <label for="newpassword">Enter New password</label>
                                         <input name="newpassword" type="password" required></input>
                                         <button>reset password</button>
                                     </form>
                                 </html>`);
+    } else {
+      res.status(404).send(`<h1>404 not found</h1>`);
     }
   } catch (err) {
     console.log(err);
@@ -69,13 +78,13 @@ const updatepassword = async (req, res, next) => {
     const { newpassword } = req.query;
     const resetpasswordid = req.params.id;
     const forpwd = await forgotpassword.findOne({
-      where: { id: resetpasswordid },
+      id: resetpasswordid,
     });
-    if (forpwd) {
+    if (forpwd !== null) {
       const user = await User.findOne({
-        where: { id: forpwd.userId },
+        _id: forpwd.userId,
       });
-      if (user) {
+      if (user !== null) {
         const saltRounds = 10;
         bcrypt.genSalt(saltRounds, (err, salt) => {
           if (err) {
@@ -85,7 +94,7 @@ const updatepassword = async (req, res, next) => {
             if (err) {
               throw new Error(err);
             }
-            await user.update({
+            await user.updateOne({
               password: hash,
             });
             res

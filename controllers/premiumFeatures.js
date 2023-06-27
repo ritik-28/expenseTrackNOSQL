@@ -1,13 +1,10 @@
 const User = require("../model/user");
-const Expenses = require("../model/expense");
-const sequelize = require("../model/database");
 
 const premiumFeature = async (req, res, next) => {
   try {
-    const users = await User.findAll({
-      attributes: ["name", "totalExpense"],
-      order: [["totalExpense", "DESC"]],
-    });
+    const users = await User.find({})
+      .select("name totalExpense")
+      .sort({ totalExpense: "desc" });
     res.status(200).json({ users });
   } catch (err) {
     res.status(500).json({ err: err });

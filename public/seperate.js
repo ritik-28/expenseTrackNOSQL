@@ -38,7 +38,7 @@ monthly.addEventListener("click", async () => {
   const date = `${month.getFullYear()}-${month.getMonth() + 1}-${1}`;
 
   const monthlyDetails = await axios.get(
-    `http://54.210.206.255:3000/monthdata?month=${date}`,
+    `http://localhost:3000/monthdata?month=${date}`,
     {
       headers: { authorization: `${localStorage.getItem("token")}` },
     }
@@ -95,13 +95,14 @@ yearly.addEventListener("click", async () => {
   const monthtemp = new Date();
   const date = `${monthtemp.getFullYear()}-1-1`;
   const yearlyDetails = await axios.get(
-    `http://54.210.206.255:3000/yeardata?year=${date}`,
+    `http://localhost:3000/yeardata?year=${date}`,
     {
       headers: { authorization: `${localStorage.getItem("token")}` },
     }
   );
 
   const { dataexpense, dataIncome } = yearlyDetails.data;
+  console.log(dataexpense, dataIncome);
   const monthdataobjexpense = {};
   const monthdataobjincome = {};
   for (let i = 0; i < dataexpense.length; i++) {
@@ -125,11 +126,11 @@ yearly.addEventListener("click", async () => {
       monthdataobjincome[`${month}`] = dataIncome[i].amount;
     }
   }
-  var savings = monthdataobjincome.April - monthdataobjexpense.April;
+  var savings = monthdataobjincome.June - monthdataobjexpense.June;
   const data = `<tr>
   <th scope="row">${month}</th>
-  <td>${monthdataobjincome.April}</td>
-  <td>${monthdataobjexpense.April}</td>
+  <td>${monthdataobjincome.June}</td>
+  <td>${monthdataobjexpense.June}</td>
   <td>${savings}</td>
 </tr>`;
   containertableyearly.style.display = "block";
@@ -186,14 +187,14 @@ formhide2.addEventListener("submit", async (e) => {
 });
 
 async function postIN(obj) {
-  const postRes = await axios.post("http://54.210.206.255:3000/income", obj, {
+  const postRes = await axios.post("http://localhost:3000/income", obj, {
     headers: { authorization: `${localStorage.getItem("token")}` },
   });
   return postRes;
 }
 
 async function postEX(obj) {
-  const postRes = await axios.post("http://54.210.206.255:3000/expenses", obj, {
+  const postRes = await axios.post("http://localhost:3000/expenses", obj, {
     headers: { authorization: `${localStorage.getItem("token")}` },
   });
   return postRes;
@@ -254,8 +255,9 @@ function createButton(list, totalExPages, exorin) {
     list.insertAdjacentElement("beforeend", div);
 
     btn.addEventListener("click", async () => {
+      if (exorin === "expense") exorin = "expenses";
       const expense = await axios.get(
-        `http://54.210.206.255:3000/${exorin}?page=${i + 1}`,
+        `http://localhost:3000/${exorin}?page=${i + 1}`,
         {
           headers: { authorization: `${localStorage.getItem("token")}` },
         }
@@ -269,7 +271,7 @@ function createButton(list, totalExPages, exorin) {
         } else {
           income = `${element.description}\u00A0 \u00A0 \u00A0 \u00A0 ₹ ${element.amount}`;
         }
-        const li = makeLi(income, element.id, exorin);
+        const li = makeLi(income, element._id, exorin);
         list.insertAdjacentText("afterbegin", "");
         list.appendChild(li);
         list.insertAdjacentElement("beforeend", div);
@@ -281,24 +283,24 @@ function createButton(list, totalExPages, exorin) {
 
 window.addEventListener("DOMContentLoaded", async () => {
   const nopage = localStorage.getItem("pagesize");
-  const getRes = await axios.get(`http://54.210.206.255:3000/expenses`, {
+  const getRes = await axios.get(`http://localhost:3000/expenses`, {
     headers: { authorization: `${localStorage.getItem("token")}` },
   });
-  const totalExPages = Math.ceil(getRes.data.totalExpense / 10);
+  const totalExPages = Math.ceil(getRes.data.totalExpensepage / 10);
   getRes.data.arr.forEach((element) => {
     const income = `${element.description}\u00A0 \u00A0 \u00A0 \u00A0 ₹ ${element.amount}\u00A0 \u00A0 \u00A0 \u00A0${element.category}`;
-    const li = makeLi(income, element.id, "expense");
+    const li = makeLi(income, element._id, "expense");
     listdone.appendChild(li);
   });
   createButton(listdone, totalExPages, "expenses");
   const isPremium = getRes.data.isPremium;
-  const getIn = await axios.get(`http://54.210.206.255:3000/income`, {
+  const getIn = await axios.get(`http://localhost:3000/income`, {
     headers: { authorization: `${localStorage.getItem("token")}` },
   });
   let totalinPages = Math.ceil(getIn.data.totalIncome / 10);
   getIn.data.arr.forEach((el) => {
     const income = `${el.description}\u00A0 \u00A0 \u00A0 \u00A0 ₹ ${el.amount}`;
-    const li = makeLi(income, el.id, "income");
+    const li = makeLi(income, el._id, "income");
     listodo.appendChild(li);
   });
 
@@ -321,12 +323,9 @@ function primium() {
 
 downloadbtn.addEventListener("click", async () => {
   try {
-    const response = await axios.get(
-      "http://54.210.206.255:3000/user/download",
-      {
-        headers: { authorization: `${localStorage.getItem("token")}` },
-      }
-    );
+    const response = await axios.get("http://localhost:3000/user/download", {
+      headers: { authorization: `${localStorage.getItem("token")}` },
+    });
     if (response.status === 201) {
       // backend is sending download link which if we open in browser, the file would download
       var a = document.createElement("a");
@@ -343,19 +342,16 @@ downloadbtn.addEventListener("click", async () => {
 
 rzpButton.addEventListener("click", async (req, res, next) => {
   const token = localStorage.getItem("token");
-  const response = await axios.get(
-    "http://54.210.206.255:3000/primiummembership",
-    {
-      headers: { authorization: token },
-    }
-  );
+  const response = await axios.get("http://localhost:3000/primiummembership", {
+    headers: { authorization: token },
+  });
 
   var options = {
     key: response.data.key_id,
     order_id: response.data.order.id,
     handler: async function (response) {
       await axios.post(
-        "http://54.210.206.255:3000/updatetransactionstatus",
+        "http://localhost:3000/updatetransactionstatus",
         {
           order_id: options.order_id,
           payment_id: response.razorpay_payment_id,
@@ -374,7 +370,7 @@ rzpButton.addEventListener("click", async (req, res, next) => {
   rzp1.on("payment.failed", async function (response) {
     alert("Transaction Failed");
     await axios.post(
-      "http://54.210.206.255:3000/failedpayment",
+      "http://localhost:3000/failedpayment",
       { order_id: options.order_id },
       {
         headers: { authorization: token },
@@ -386,7 +382,7 @@ rzpButton.addEventListener("click", async (req, res, next) => {
 leaderboard.addEventListener("click", async (e) => {
   con1.innerHTML = "";
   const leader = await axios.get(
-    "http://54.210.206.255:3000/premium/showleaderboard",
+    "http://localhost:3000/premium/showleaderboard",
     {
       headers: { authorization: `${localStorage.getItem("token")}` },
     }
@@ -430,8 +426,9 @@ function makeLi(income, id, exorin) {
   buttondel.append(document.createTextNode("x"));
 
   buttondel.addEventListener("click", async () => {
+    if (exorin === "expense") exorin = "expenses";
     const response = await axios.delete(
-      `http://54.210.206.255:3000/delete/${exorin}/${id}`,
+      `http://localhost:3000/delete/${exorin}/${id}`,
       {
         headers: { authorization: `${localStorage.getItem("token")}` },
       }

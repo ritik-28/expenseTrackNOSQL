@@ -10,12 +10,13 @@ const incomePost = async (req, res, next) => {
       const response = await Income.create({
         description,
         amount,
-        userId: req.user.id,
+        userId: req.user._id,
       });
 
-      return res
-        .status(201)
-        .json({ msg: "new income has been created in table", id: response.id });
+      return res.status(201).json({
+        msg: "new income has been created in table",
+        id: response._id,
+      });
     }
   } catch (err) {
     return res.json({ err: err });
@@ -28,22 +29,21 @@ const incomeGet = async (req, res, next) => {
   try {
     const page = +req.query.page || 1;
     const ITEM_PER_PAGE = 10;
-    const getRes = await Income.findAll({
-      where: {
-        userId: req.user.id,
-      },
-      order: [["createdAt", "DESC"]],
-      offset: (page - 1) * ITEM_PER_PAGE,
-      limit: ITEM_PER_PAGE,
-    });
+    const getRes = await Income.find({
+      userId: req.user._id,
+    })
+      .skip((page - 1) * ITEM_PER_PAGE)
+      .limit(ITEM_PER_PAGE)
+      .sort({ createdAt: "desc" })
+      .select("-userId -createdAt -updatedAt");
+
     const totalIncome = await Income.count({
-      where: {
-        userId: req.user.id,
-      },
+      userId: req.user._id,
     });
+
     const arr = [];
     getRes.forEach((element) => {
-      arr.push(element.dataValues);
+      arr.push(element);
     });
     return res.json({ arr, totalIncome });
   } catch (err) {
